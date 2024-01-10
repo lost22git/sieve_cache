@@ -75,7 +75,6 @@ proc evit[K, V](cache: Cache[K, V]): Node[K, V] =
       break
 
 proc addNode[K, V](cache: Cache[K, V], node: Node[K, V]) =
-  node.visited = true
   if cache.head == nil:
     cache.head = node
     cache.tail = node
