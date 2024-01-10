@@ -30,6 +30,9 @@ proc getNodeFromStore[K, V](cache: Cache[K, V], k: K): Node[K, V] =
 proc hasNodeInStore[K, V](cache: Cache[K, V], k: K): bool =
   result = cache.store.hasKey(k)
 
+proc cleanStore[K, V](cache: Cache[K, V]) =
+  cache.store.clear()
+
 proc delNode[K, V](cache: Cache[K, V], node: Node[K, V]) =
   ## delete the node from linked-list of the cache
   if cache.head == nil:
@@ -88,6 +91,12 @@ proc addNode[K, V](cache: Cache[K, V], node: Node[K, V]) =
     cache.head = node
   inc cache.len
 
+func stringfiy[V](v: V): string =
+  when v is ref:
+    if v == nil:
+      return "nil"
+  return $v
+
 # ------ PUBLIC API --------------------
 
 proc `$`*[K, V](node: Node[K, V]): string =
@@ -95,7 +104,7 @@ proc `$`*[K, V](node: Node[K, V]): string =
 
 proc `$`*[K, V](cache: Cache[K, V]): string =
   result =
-    fmt"Cache(len={cache.len},cap={cache.cap},head={cache.head},tail={cache.tail},cursor={cache.cursor})"
+    fmt"Cache(len={cache.len},cap={cache.cap},head={cache.head.stringfiy()},tail={cache.tail.stringfiy()},cursor={cache.cursor.stringfiy()})"
 
 proc newCache*[K, V](cap: int): Cache[K, V] =
   if cap < 1:
@@ -150,3 +159,18 @@ proc `[]`*[K, V](cache: Cache[K, V], k: K): V =
 
 proc `[]=`*[K, V](cache: Cache[K, V], k: K, v: V) =
   cache.add(k, v)
+
+proc clear*[K, V](cache: Cache[K, V]) =
+  cache.cleanStore()
+  cache.len = 0
+  cache.head = nil
+  cache.tail = nil
+  cache.cursor = nil
+
+iterator chain*[K, V](cache: Cache[K, V]): Node[K, V] =
+  var cursor = cache.head
+  while true:
+    if cursor == nil:
+      break
+    yield cursor
+    cursor = cursor.next
